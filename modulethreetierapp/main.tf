@@ -197,28 +197,26 @@ resource "azurerm_network_interface" "app_nic" {
 }
 
 # Database Tier - Azure Database for MySQL
-resource "azurerm_mysql_server" "mysql" {
-  name                = "mysqlserver"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  administrator_login = var.db_admin_username
-  administrator_login_password = var.db_admin_password
-  sku_name            = "GP_Gen5_2"
-  storage_mb          = 5120
-  version             = "5.7"
-  auto_grow_enabled   = true
-  backup_retention_days = 7
+resource "azurerm_mysql_flexible_server" "mysql" {
+  name                   = "mysqlserver"
+  location               = azurerm_resource_group.rg.location
+  resource_group_name    = azurerm_resource_group.rg.name
+  administrator_login    = var.db_admin_username
+  administrator_password = var.db_admin_password  # ✅ Correction ici
+
+  sku_name               = "GP_Standard_D2ds_v4"  # ✅ Choisir une SKU valide
+  #storage_tier           = "P4"  # ✅ Remplace storage_mb
+
+  backup_retention_days  = 7
   geo_redundant_backup_enabled = false
-  public_network_access_enabled = false
-  ssl_enforcement_enabled       = true
 
-
+  depends_on = [azurerm_resource_group.rg]
 }
 
-resource "azurerm_mysql_database" "exampledb" {
+resource "azurerm_mysql_flexible_database" "exampledb" {
   name                = "exampledb"
   resource_group_name = azurerm_resource_group.rg.name
-  server_name         = azurerm_mysql_server.mysql.name
+  server_name         = azurerm_mysql_flexible_server.mysql.name
   charset             = "utf8"
   collation           = "utf8_general_ci"
 }
